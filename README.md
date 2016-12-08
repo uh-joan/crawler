@@ -28,7 +28,9 @@ For example:
 ```
 
 # Usage
+```
 Usage: web_crawler [options]
     -u, --url URL                    The url to crawl
     -d, --depth DEPTH                The depth of the links to reach
     -h, --help                       Show this message
+```
