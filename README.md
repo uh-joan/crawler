@@ -1,8 +1,8 @@
 #Simple Web Crawler
 
-Given a starting URL, it visits every reachable page under that domain.
+Given a starting URL, it visits every reachable page under that domain, up to a given depth.
 
-For each page, it should determine the URLs of every static asset (images, javascript, stylesheets) on that page.
+For each page, it determines the URLs of every static asset (images, javascript, stylesheets) on that page.
 
 The crawler outputs to STDOUT in JSON format listing the URLs of every static asset, grouped by page.
 
@@ -25,6 +25,26 @@ For example:
   },
   ..
 ]
+```
+
+# Depth
+
+The depth determines the links to reach, for example:
+
+```
+- Depth 0
+  http://www.example.org
+
+- Depth 1
+  http://www.example.org/about
+  http://www.example.org/contact
+  http://www.example.org/faq
+  http://www.example.org/blog
+
+- Depth 2
+  http://www.example.org/blog/news
+  http://www.example.org/faq/english
+  http://www.example.org/faq/french
 ```
 
 # Usage
