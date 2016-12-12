@@ -3,41 +3,41 @@ require 'open-uri'
 require 'json'
 
 class Crawler
-  def initialize(url, depth = 1)
+  def initialize(url)
     @url = url
-    @depth = depth.to_i
     @doc = Nokogiri::HTML(open(@url, "Accept-Encoding" => "plain", "User-Agent" => "chrome"))
-
     @output = []
-    unless @doc.nil?
-      assets = extract_assets @doc
-      @output << { url: @url, assets: assets.to_json }
-    end
-
   end
 
-  def crawl
-    depth_count = 0
-
-    # loop over depth to reach
+  def crawl (depth)
     unless @doc.nil?
-      while depth_count <= @depth
+      if depth > 0
+        temp = []
         links = extract_links @doc
-
         links.each do |link|
-          if is_a_partial_link_and_of_depth(link, depth_count)
-            new_url = @url + link
-            doc = Nokogiri::HTML(open(new_url, "Accept-Encoding" => "plain", "User-Agent" => "chrome"))
-            assets = extract_assets doc
-            @output  << { url: new_url, assets: assets.to_json }
+          if is_a_partial_link_and_of_depth(link, depth)
+            temp << save_assets( @url + link )
           end
         end
-
-        depth_count+=1
+        @output.unshift(temp)
+        crawl(depth - 1)
+      else
+        @output.unshift( save_assets( @url ) )
       end
     end
+    @output.flatten(1)
+  end
 
-    @output
+  def save_assets (url)
+    begin
+      doc = Nokogiri::HTML(open(url, "Accept-Encoding" => "plain", "User-Agent" => "chrome"))
+    rescue
+      doc = nil
+    end
+    unless doc.nil?
+      assets = extract_assets doc
+      { url: url, assets: assets.to_json }
+    end
   end
 
   def is_a_partial_link_and_of_depth (link, depth)
