@@ -9,7 +9,7 @@ class Crawler
     @output = []
   end
 
-  def crawl (depth)
+  def crawl (depth=1)
     unless @doc.nil?
       if depth > 0
         temp = []
