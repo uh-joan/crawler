@@ -36,7 +36,7 @@ class Crawler
     end
     unless doc.nil?
       assets = extract_assets doc
-      { url: url, assets: assets.to_json }
+      { url: url, assets: assets }
     end
   end
 
@@ -44,7 +44,7 @@ class Crawler
     begin
       # account only for partial links
       route_elements = link.split('/')
-      (route_elements[0].empty? && route_elements.count == depth+1) ? true : false
+      (route_elements[0].empty? && route_elements.count == depth+1 ) ? true : false
     rescue
       false
     end
@@ -63,6 +63,6 @@ class Crawler
     assets << doc.xpath('//script').map{ |link| link['src'] }
     assets << doc.xpath('//image').map { |link| link['src'] }
     # get rid of nils, duplicates and attach the domain to only the assets with partial links
-    assets.flatten.compact.uniq.map { |asset| asset.start_with?('/') && !asset.start_with?('//')? @url+asset : asset }
+    assets.flatten.compact.uniq.map { |asset| asset.start_with?('/') && !asset.start_with?('//') ? @url+asset : asset }
   end
 end
