@@ -1,1 +1,10 @@
-# Created by .ignore support plugin (hsz.mobi)
+/.bundle/
+/.yardoc
+/Gemfile.lock
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+/.idea
