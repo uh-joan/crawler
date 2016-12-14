@@ -5,7 +5,7 @@ require 'json'
 class Crawler
   def initialize(url)
     @url = url
-    @doc = Nokogiri::HTML(open(@url, "Accept-Encoding" => "plain", "User-Agent" => "chrome"))
+    @doc = get_nokogiri url
     @output = []
   end
 
@@ -16,28 +16,46 @@ class Crawler
         links = extract_links @doc
         links.each do |link|
           if is_a_partial_link_and_of_depth(link, depth)
-            temp << save_assets( @url + link )
+            assets = get_assets( @url + link )
+            unless assets.nil?
+              temp << assets
+            end
           end
         end
         @output.unshift(temp)
         crawl(depth - 1)
       else
-        @output.unshift( save_assets( @url ) )
+        assets = get_assets( @url )
+        unless assets.nil?
+          @output.unshift( assets )
+        end
       end
     end
     @output.flatten(1)
   end
 
-  def save_assets (url)
+  def get_assets (url)
     begin
-      doc = Nokogiri::HTML(open(url, "Accept-Encoding" => "plain", "User-Agent" => "chrome"))
+      doc = get_nokogiri url
     rescue
-      doc = nil
+      if url.start_with?('https')
+        url = url.gsub('https', 'http')
+        begin
+          doc = get_nokogiri url
+        rescue
+          doc = nil
+        end
+      end
+
     end
     unless doc.nil?
       assets = extract_assets doc
       { url: url, assets: assets }
     end
+  end
+
+  def get_nokogiri (url)
+    Nokogiri::HTML(open(url, 'Accept-Encoding' => 'plain', 'User-Agent' => 'chrome'))
   end
 
   def is_a_partial_link_and_of_depth (link, depth)
@@ -63,6 +81,18 @@ class Crawler
     assets << doc.xpath('//script').map{ |link| link['src'] }
     assets << doc.xpath('//img').map { |link| link['src'] }
     # get rid of nils, duplicates and attach the domain to only the assets with partial links
-    assets.flatten.compact.uniq.map { |asset| asset.start_with?('/') && !asset.start_with?('//') ? @url+asset : asset }
+    assets.flatten.compact.uniq.map { |asset|
+      if asset.start_with?('/') && !asset.start_with?('//')
+        # it a good partial link
+        @url+asset
+      elsif asset.start_with?('//')
+        # assets might be a full url
+        'https:'+asset
+      else
+        # something else
+        asset
+      end
+    }
   end
+
 end
